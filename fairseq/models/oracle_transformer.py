@@ -75,38 +75,32 @@ class TransformerModel(FairseqEncoderDecoderModel):
         self.probs = 0
         
         self.use_sentence_oracle_mask = args.use_sentence_oracle_mask
-
-        self.eval_embedding = []
-
-        self.change_decay_prob_till = args.change_decay_prob_till
-
-        self.use_neighbor_MLE = args.use_neighbor_MLE
-
-
+        self.use_mix_CE = args.use_mix_CE
         self.exponential = args.ss_exponential
 
-        self.random_sampling = args.random_sampling_strategy
+        #self.random_sampling = args.random_sampling_strategy
 
-        self.topk_sampling = args.use_topk_sampling
-        self.topk_k = args.topk_k
+        #self.topk_sampling = args.use_topk_sampling
+        #self.topk_k = args.topk_k
 
-        self.random_or_greedy_sampling = args.random_or_greedy_sampling
-        self.random_greedy_ratio = args.random_greedy_ratio
+        #self.random_or_greedy_sampling = args.random_or_greedy_sampling
+        #self.random_greedy_ratio = args.random_greedy_ratio
 
 
-        self.random_mix_mle_test = args.random_mix_mle_test
-        self.greedy_mix_mle_test = args.greedy_mix_mle_test
-        self.no_mix_gold = args.no_mix_gold
-        self.replace_non_gold_greedy = args.replace_non_gold_greedy
+        #self.random_mix_mle_test = args.random_mix_mle_test
+        #self.greedy_mix_mle_test = args.greedy_mix_mle_test
+        self.greedy_mix_CE = args.greedy_mix_CE
+        #self.no_mix_gold = args.no_mix_gold
+        #self.replace_non_gold_greedy = args.replace_non_gold_greedy
 
-        self.random_sampling_greedy_output = args.random_sampling_greedy_output
-        self.random_sampling_random_output = args.random_sampling_random_output
+        #self.random_sampling_greedy_output = args.random_sampling_greedy_output
+        #self.random_sampling_random_output = args.random_sampling_random_output
         self.word_oracle_noise_greedy_output = args.word_oracle_noise_greedy_output
-        self.topk_greedy_output = args.topk_greedy_output
-        self.word_oracle_no_noise_greedy_mix_random_output = args.word_oracle_no_noise_greedy_mix_random_output
-        self.word_oracle_replace_non_gold_greedy_with_topk = args.word_oracle_replace_non_gold_greedy_with_topk
+        #self.topk_greedy_output = args.topk_greedy_output
+        #self.word_oracle_no_noise_greedy_mix_random_output = args.word_oracle_no_noise_greedy_mix_random_output
+        #self.word_oracle_replace_non_gold_greedy_with_topk = args.word_oracle_replace_non_gold_greedy_with_topk
 
-        self.decay_update = args.decay_update
+        #self.decay_update = args.decay_update
         
 
 
@@ -191,7 +185,7 @@ class TransformerModel(FairseqEncoderDecoderModel):
         parser.add_argument('--decay-k', type=int, metavar='D', default=0,
                             help='decay k')
 
-        parser.add_argument('--change-decay-prob-till', type=int, default=0)                       # !!!
+        #parser.add_argument('--change-decay-prob-till', type=int, default=0)                       # !!
 
         parser.add_argument('--use-epoch-numbers-decay', action='store_true', default=False,
                             help='probability decay by epoch number')
@@ -205,70 +199,43 @@ class TransformerModel(FairseqEncoderDecoderModel):
                             help='generate oracle sentence beam size')
         parser.add_argument('--use-sentence-oracle-mask', action='store_true', default=False)
         
-        parser.add_argument('--use_neighbor_MLE', action='store_true', default=False)
-        parser.add_argument('--super_neighbor_MLE', action='store_true', default=False)
-
-        parser.add_argument('--use_neighborhood_sampling', action='store_true', default=False)
-        parser.add_argument('--neighborhood_distance', type=int, default=0)
+        parser.add_argument('--use-mix-CE', action='store_true', default=False)
+    
         parser.add_argument('--ss-exponential', type=float, default=0.5)
 
-        parser.add_argument('--fixed_neighborhood', action='store_true', default=False)
+        #parser.add_argument('--random_sampling_strategy', action='store_true', default=False)
 
-        parser.add_argument('--neighborhood_direction', type=str, default='down')
+        #parser.add_argument('--use-topk-sampling', action='store_true', default=False)
+        #parser.add_argument('--topk-k', type=int, default=1)
 
-        parser.add_argument('--neighborhood_sampling_by_score', action='store_true', default=False)
-        parser.add_argument('--increase_every', type=int, default=-1)
-        parser.add_argument('--neighbor_temperature', type=float, default=0)
-        #parser.add_argument('--neighbor_range', type=str, default='range',
-        #                    help='fixed_position, range')
+        #parser.add_argument('--random_or_greedy_sampling', action='store_true',default=False)
+        #parser.add_argument('--random_greedy_ratio', type=float, default=0.5)
 
-        parser.add_argument('--random_sampling_strategy', action='store_true', default=False)
+        #parser.add_argument('--random-mix-mle-test', action='store_true', default=False)
+        parser.add_argument('--greedy-mix-CE', action='store_true', default=False)
+        #parser.add_argument('--no-mix-gold', action='store_true', default=False)
+        #parser.add_argument('--replace-non-gold-greedy', action='store_true', default=False)
 
-        parser.add_argument('--use-topk-sampling', action='store_true', default=False)
-        parser.add_argument('--topk-k', type=int, default=1)
-
-        parser.add_argument('--random_or_greedy_sampling', action='store_true',default=False)
-        parser.add_argument('--random_greedy_ratio', type=float, default=0.5)
-
-        parser.add_argument('--moe-random-sampling', action='store_true', default=False)
-        parser.add_argument('--moe-topk-random-sampling', action='store_true', default=False)
-        parser.add_argument('--moe-word-level-oracle', action='store_true', default=False)
-        parser.add_argument('--num-of-experts', type=int, default=1)
-        parser.add_argument('--opposite-expert', action='store_true', default=False)
-        parser.add_argument('--decreasing-expert', action='store_true', default=False)
-
-        parser.add_argument('--moe-embedding-random-sampling', action='store_true', default=False)
-
-        parser.add_argument('--random-mix-mle-test', action='store_true', default=False)
-        parser.add_argument('--greedy-mix-mle-test', action='store_true', default=False)
-        parser.add_argument('--no-mix-gold', action='store_true', default=False)
-        parser.add_argument('--replace-non-gold-greedy', action='store_true', default=False)
-
-        parser.add_argument('--random-sampling-greedy-output', action='store_true', default=False)
-        parser.add_argument('--random-sampling-random-output', action='store_true', default=False)
+        #parser.add_argument('--random-sampling-greedy-output', action='store_true', default=False)
+        #parser.add_argument('--random-sampling-random-output', action='store_true', default=False)
         parser.add_argument('--word-oracle-noise-greedy-output', action='store_true', default=False)
-        parser.add_argument('--topk-greedy-output', action='store_true', default=False)
-        parser.add_argument('--word-oracle-no-noise-greedy-mix-random-output', action='store_true', default=False)
-        parser.add_argument('--word-oracle-replace-non-gold-greedy-with-topk', action='store_true', default=False)
+        #parser.add_argument('--topk-greedy-output', action='store_true', default=False)
+        #parser.add_argument('--word-oracle-no-noise-greedy-mix-random-output', action='store_true', default=False)
+        #parser.add_argument('--word-oracle-replace-non-gold-greedy-with-topk', action='store_true', default=False)
 
-        parser.add_argument('--source-random-sampling', action='store_true', default=False)
-        parser.add_argument('--source-ss-exponential', type=float, default=0.8)
+        #parser.add_argument('--source-random-sampling', action='store_true', default=False)
+        #parser.add_argument('--source-ss-exponential', type=float, default=0.8)
 
-        parser.add_argument('--iterative-training', action='store_true', default=False)
+        #parser.add_argument('--iterative-training', action='store_true', default=False)
 
-        parser.add_argument('--soft-training', action='store_true', default=False)
-        parser.add_argument('--topk-hard-training', action='store_true', default=False)
-        parser.add_argument('--topk-hard', type=int, default=-1)
-
-        parser.add_argument('--switchout', action='store_true', default=False)
-        parser.add_argument('--tau-x', type=float, default=1)
-        parser.add_argument('--tau-y', type=float, default=1)
-        parser.add_argument('--increment-tau', type=float, default=0)
+        #parser.add_argument('--soft-training', action='store_true', default=False)
+        #parser.add_argument('--topk-hard-training', action='store_true', default=False)
+        #parser.add_argument('--topk-hard', type=int, default=-1)
         
-        parser.add_argument('--minimum-risk-training', action='store_true', default=False)
-        parser.add_argument('--minimum-risk-training-beam-size', type=int, default=100)
+        #parser.add_argument('--minimum-risk-training', action='store_true', default=False)
+        #parser.add_argument('--minimum-risk-training-beam-size', type=int, default=100)
         
-        parser.add_argument('--decay-update', type=int, default=0)
+        #parser.add_argument('--decay-update', type=int, default=0)
 
     @classmethod
     def build_model(cls, args, task):
@@ -298,13 +265,6 @@ class TransformerModel(FairseqEncoderDecoderModel):
                                                                      max_len_b=0, )
             generator = SequenceGenerator(tgt_dict, beam_size=args.oracle_search_beam_size, match_source_len=False,
                                           max_len_a=1, max_len_b=100, search_strategy=search_strategy)
-        elif args.minimum_risk_training:
-            from fairseq.sequence_generator import SequenceGenerator
-            import fairseq.search as search
-            search_strategy = search.Sampling(tgt_dict, sampling_topk=3)
-            generator = SequenceGenerator(tgt_dict, beam_size=args.minimum_risk_training_beam_size, search_strategy=search_strategy,
-                                          max_len_a= 1, max_len_b=0,
-                                           normalize_scores=True)
         
         if args.share_all_embeddings:
             if src_dict != tgt_dict:
@@ -370,7 +330,7 @@ class TransformerModel(FairseqEncoderDecoderModel):
             self.decay_prob(epoch, or_type=3, k=self.decay_k)
             print('swith to epoch {}, prob. -> {}'.format(epoch, self.probs))
 
-    def decay_prob(self, i, or_type=4, k=3000, source_decay=False):
+    def decay_prob(self, i, or_type=4, k=3000):
         if or_type == 1:  # Linear decay
             or_prob_begin, or_prob_end = 1., 0.
             or_decay_rate = (or_prob_begin - or_prob_end) / 10.
@@ -416,36 +376,6 @@ class TransformerModel(FairseqEncoderDecoderModel):
 
         return prev_output_tokens * sample_gold_mask + pred_tokens * (1 - sample_gold_mask)
 
-    def get_greedy_mix_gold_input_greedy_mix_random_output(self, pred_logits, prev_output_tokens, epsilon=1e-6):
-        B, L = prev_output_tokens.size()
-        V = len(self.decoder.dictionary.symbols)
-
-        bos_idx = prev_output_tokens[0, 0]
-        pred_tokens_no_noise = torch.max(pred_logits, dim=-1)[1]
-
-        # B x L x V
-        if self.use_greedy_gumbel_noise:
-            pred_logits.data.add_(-torch.log(-torch.log(torch.empty_like(
-                pred_logits).uniform_(0, 1) + epsilon) + epsilon)) / self.gumbel_noise
-        pred_tokens = torch.max(pred_logits, dim=-1)[1]
-
-        pred_tokens_replace_non_gold = pred_tokens_no_noise.detach().clone()
-        random_tokens = torch.randint_like(prev_output_tokens, low=0, high=V)
-        non_gold_mask = pred_tokens_replace_non_gold[:, :-1] != prev_output_tokens[:, 1:]
-        last_col_mask = torch.zeros(B, 1, device=pred_tokens_replace_non_gold.device).bool()
-        non_gold_mask = torch.cat([non_gold_mask, last_col_mask], dim=1)
-        #pred_tokens_replace_non_gold.masked_scatter_(non_gold_mask, random_tokens)
-        pred_tokens_replace_non_gold.masked_fill_(non_gold_mask, 1)### modify
-        pred_tokens_replace_non_gold = torch.cat([(bos_idx * torch.ones((B, 1))).to(pred_tokens_replace_non_gold), pred_tokens_replace_non_gold], dim=1)[:, :-1]
-
-        pred_tokens = torch.cat([(bos_idx * torch.ones((B, 1))).to(pred_tokens), pred_tokens], dim=1)[:, :-1]
-        sample_gold_prob = self.probs if self.epoch_decay else self.decay_prob(self.updates, k=self.decay_k)
-        sample_gold_prob = sample_gold_prob * torch.ones_like(prev_output_tokens, dtype=torch.float32)
-        sample_gold_mask = torch.bernoulli(sample_gold_prob).long()
-
-        return prev_output_tokens * sample_gold_mask + pred_tokens * (1 - sample_gold_mask), pred_tokens_replace_non_gold
-
-
     def get_greedy_output(self, pred_logits, prev_output_tokens):
         B,L = prev_output_tokens.size()
         pred_tokens = torch.max(pred_logits, dim=-1)[1]
@@ -453,34 +383,10 @@ class TransformerModel(FairseqEncoderDecoderModel):
         pred_tokens = torch.cat([(bos_idx * torch.ones((B, 1))).to(pred_tokens), pred_tokens], dim=1)[:, :-1]
         return pred_tokens
 
-    def get_topk_output(self, pred_logits, prev_output_tokens):
-        B,L = prev_output_tokens.size()
-        #p = torch.rand(1)
-        #if p>0.5:
-        #    pred_tokens = torch.topk(pred_logits, k=2, dim=-1)[1][:,:,1:2].squeeze()
-        #else:
-        #    pred_tokens = torch.topk(pred_logits, k=2, dim=-1)[1][:,:,0:1].squeeze()
-        k=1
-        pred_tokens = torch.topk(pred_logits, k=k, dim=-1)[1]
-
-        #assert pred_tokens.dim()==2, pred_tokens.size()
-        bos_idx = prev_output_tokens[0, 0]
-        pred_tokens = torch.cat([(bos_idx * torch.ones((B, 1, k))).to(pred_tokens), pred_tokens], dim=1)[:, :-1, :]
-        return pred_tokens
-        
-
-
-    def get_soft_greedy_output(self, pred_logits):
-        pred_prob = torch.nn.functional.softmax(pred_logits, dim=-1)
-        return pred_prob
-
-
-
     def get_greedy_noise_input_greedy_output(self, pred_logits, prev_output_tokens, epsilon=1e-6):
         B, L = prev_output_tokens.size()
         bos_idx = prev_output_tokens[0, 0]
 
-       # if not self.soft_training and (not self.topk_hard_training):
         pred_tokens_no_noise = torch.max(pred_logits, dim=-1)[1]
         pred_tokens_no_noise = torch.cat([(bos_idx * torch.ones((B, 1))).to(pred_tokens_no_noise), pred_tokens_no_noise], dim=1)[:, :-1]
 
@@ -498,171 +404,6 @@ class TransformerModel(FairseqEncoderDecoderModel):
 
         return prev_output_tokens * sample_gold_mask + pred_tokens * (1 - sample_gold_mask), pred_tokens_no_noise
 
-    def get_topk_input_greedy_output(self, pred_logits, prev_output_tokens, k):
-        B, L = prev_output_tokens.size()
-        topk_tokens = torch.topk(pred_logits, k, dim=-1, largest=True)[1].view(B*L, k)
-        random_numbers = torch.randint_like(prev_output_tokens, low=1, high=k).view(-1,1)
-        kth_tokens = topk_tokens[torch.arange(B*L, dtype=topk_tokens.dtype, device=topk_tokens.device).view(-1,1), random_numbers].view(B,L)
-        pred_tokens = torch.max(pred_logits, dim=-1)[1]
-
-        bos_idx = prev_output_tokens[0, 0]
-        topk_pred_tokens = torch.cat([(bos_idx * torch.ones((B, 1), device=kth_tokens.device, dtype=kth_tokens.dtype)), kth_tokens], dim=1)[:, :-1]
-        pred_tokens = torch.cat([(bos_idx * torch.ones((B, 1))).to(pred_tokens), pred_tokens], dim=1)[:, :-1]
-
-        sample_gold_prob = self.probs if self.epoch_decay else self.decay_prob(self.updates, k=self.decay_k)
-        sample_gold_prob = sample_gold_prob * torch.ones_like(prev_output_tokens, dtype=torch.float32)
-        sample_gold_mask = torch.bernoulli(sample_gold_prob).long()
-
-        return prev_output_tokens * sample_gold_mask + topk_pred_tokens * (1 - sample_gold_mask), pred_tokens
-
-
-    def get_random_tokens(self, prev_output_tokens):
-        B, L = prev_output_tokens.size()
-        V = len(self.decoder.dictionary.symbols)
-        random_tokens = torch.randint_like(prev_output_tokens, low=0, high=V)
-        bos_idx = prev_output_tokens[0, 0]
-        random_tokens = torch.cat([(bos_idx * torch.ones((B, 1))).to(random_tokens), random_tokens], dim=1)[:, :-1]
-        sample_gold_prob = self.probs if self.epoch_decay else self.decay_prob(self.updates, k=self.decay_k)
-        sample_gold_prob = sample_gold_prob * torch.ones_like(prev_output_tokens, dtype=torch.float32)
-        sample_gold_mask = torch.bernoulli(sample_gold_prob).long()
-
-        return prev_output_tokens * sample_gold_mask + random_tokens * (1 - sample_gold_mask)
-        
-
-        
-    def replace_non_gold_greedy_with_random_tokens(self, pred_logits, prev_output_tokens):
-        B, L = prev_output_tokens.size()
-        B1, L1, V1 =  pred_logits.size()
-        V = len(self.decoder.dictionary.symbols)
-        assert V == V1
-        assert B == B1
-        assert L == L1
-        random_tokens = torch.randint_like(prev_output_tokens, low=0, high=V)
-        pred_tokens = torch.max(pred_logits, dim=-1)[1]
-
-        non_gold_mask = pred_tokens[:,:-1] != prev_output_tokens[:,1:]
-        last_col_mask = torch.zeros(B, 1, device=pred_tokens.device).bool()
-        non_gold_mask = torch.cat([non_gold_mask, last_col_mask], dim=1)
-
-        pred_tokens.masked_scatter_(non_gold_mask, random_tokens)
-        bos_idx = prev_output_tokens[0, 0]
-        pred_tokens = torch.cat([(bos_idx * torch.ones((B, 1))).to(pred_tokens), pred_tokens], dim=1)[:, :-1]
-
-        return pred_tokens
-
-
-
-    def get_topk_tokens(self, pred_logits, prev_output_tokens, k):
-        B, L = prev_output_tokens.size()
-        topk_tokens = torch.topk(pred_logits, k, dim=-1, largest=True)[1].view(B*L, k)
-        random_numbers = torch.randint_like(prev_output_tokens, low=1, high=k).view(-1,1)
-        kth_tokens = topk_tokens[torch.arange(B*L, dtype=topk_tokens.dtype, device=topk_tokens.device).view(-1,1), random_numbers].view(B,L)
-
-        bos_idx = prev_output_tokens[0, 0]
-        pred_tokens = torch.cat([(bos_idx * torch.ones((B, 1), device=kth_tokens.device, dtype=kth_tokens.dtype)), kth_tokens], dim=1)[:, :-1]
-        sample_gold_prob = self.probs if self.epoch_decay else self.decay_prob(self.updates, k=self.decay_k)
-        sample_gold_prob = sample_gold_prob * torch.ones_like(prev_output_tokens, dtype=torch.float32)
-        sample_gold_mask = torch.bernoulli(sample_gold_prob).long()
-
-        return prev_output_tokens * sample_gold_mask + pred_tokens * (1 - sample_gold_mask)
-
-
-    def get_random_or_greedy_tokens(self, pred_logits, prev_output_tokens, epsilon=1e-6):
-        B, L = prev_output_tokens.size()
-        V = pred_logits.size(-1)
-        # B x L x V
-        if self.use_greedy_gumbel_noise:
-            pred_logits.data.add_(-torch.log(-torch.log(torch.Tensor(
-                pred_logits.size()).to(pred_logits).uniform_(0, 1) + epsilon) + epsilon)) / self.gumbel_noise
-
-        greedy_tokens = torch.max(pred_logits, dim=-1)[1]
-        random_tokens = torch.randint_like(prev_output_tokens, low=0, high=V)
-
-        sample_random_greedy_prob = self.random_greedy_ratio * torch.ones_like(prev_output_tokens, dtype=torch.float32)
-        sample_random_greedy_mask = torch.bernoulli(sample_random_greedy_prob).long()
-        pred_tokens = greedy_tokens * sample_random_greedy_mask + random_tokens * (1 - sample_random_greedy_mask)
-
-        bos_idx = prev_output_tokens[0, 0]
-        pred_tokens = torch.cat([(bos_idx * torch.ones((B, 1))).to(pred_tokens), pred_tokens], dim=1)[:, :-1]
-        sample_gold_prob = self.decay_prob(self.epoch-5, or_type=3, k=self.decay_k) if self.epoch_decay else self.decay_prob(self.updates, k=self.decay_k)
-        sample_gold_prob = sample_gold_prob * torch.ones_like(prev_output_tokens, dtype=torch.float32)
-        sample_gold_mask = torch.bernoulli(sample_gold_prob).long()
-
-        return prev_output_tokens * sample_gold_mask + pred_tokens * (1 - sample_gold_mask)
-    
-    
-    def compute_sentence_bleu(self, pred, ref):
-        pre_str = [str(i) for i in pred]
-        ref_str = [str(i) for i in ref]
-        bleu = nltk.translate.bleu_score.sentence_bleu([ref_str], pre_str)
-        return bleu
-        
-    @torch.no_grad()
-    def get_sentence_oracle_tokens(self, prev_output_tokens, src_tokens, src_lengths, target):
-        bos_idx = prev_output_tokens[0, 0]
-        B, L = prev_output_tokens.size()
-        sample = {}
-        sample['net_input'] = {}
-        sample['net_input']['src_tokens'] = src_tokens
-        sample['net_input']['src_lengths'] = src_lengths
-        noise = None
-        if self.use_bleu_gumbel_noise:
-            noise = self.gumbel_noise
-        out = self.generator.generate([self], sample, target, noise=noise)
-        sentence_oracle_inputs = torch.ones_like(target)
-        
-        i = 0
-        for x, t in zip(out, target):
-            tmp_max = 0
-            best_item = None
-            for item in x:
-                bleu = self.compute_sentence_bleu(item['tokens'].cpu().numpy().tolist(), t.cpu().numpy().tolist())
-                
-                if bleu > tmp_max:
-                    best_item = item
-                    tmp_max = bleu
-            sentence_oracle_inputs[i, :len(best_item['tokens']) - 1] = best_item['tokens'][:-1]
-            i += 1
-        oracle_inputs = torch.cat([bos_idx * torch.ones((B, 1), device=prev_output_tokens.device, dtype=torch.int64),
-                                   sentence_oracle_inputs], dim=1)[:, :-1]
-        self.train()
-        return oracle_inputs
-        
-    @torch.no_grad()
-    def get_sentence_oracle_tokens_mask(self, prev_output_tokens, src_tokens, src_lengths, target):
-        prob = self.probs if self.epoch_decay else self.decay_prob(self.updates, or_type=4, k=self.decay_update)
-        bos_idx = prev_output_tokens[0, 0]
-        B, L = prev_output_tokens.size()
-        sample = {}
-        sample['net_input'] = {}
-        sample['net_input']['src_tokens'] = src_tokens
-        sample['net_input']['src_lengths'] = src_lengths
-        noise = None
-        if self.use_bleu_gumbel_noise:
-            noise = self.gumbel_noise
-        out = self.generator.generate([self], sample, target, noise=noise)
-        sentence_oracle_inputs = torch.ones_like(target)
-        
-        mask_prob = prob * torch.ones_like(prev_output_tokens, dtype=torch.float32)
-        mask = torch.bernoulli(mask_prob).long()
-        
-        i = 0
-        for x, t in zip(out, target):
-            tmp_max = 0
-            best_item = None
-            for item in x:
-                bleu = self.compute_sentence_bleu(item['tokens'].cpu().numpy().tolist(), t.cpu().numpy().tolist())
-                
-                if bleu > tmp_max:
-                    best_item = item
-                    tmp_max = bleu
-            sentence_oracle_inputs[i, :len(best_item['tokens']) - 1] = best_item['tokens'][:-1]
-            i += 1
-        oracle_inputs = torch.cat([bos_idx * torch.ones((B, 1), device=prev_output_tokens.device, dtype=torch.int64),
-                                   sentence_oracle_inputs], dim=1)[:, :-1]
-        self.train()
-        return prev_output_tokens * mask + oracle_inputs * (1-mask)
-            
     # TorchScript doesn't support optional arguments with variable length (**kwargs).
     # Current workaround is to add union of all arguments in child classes.
     def forward(
@@ -682,107 +423,28 @@ class TransformerModel(FairseqEncoderDecoderModel):
                                    return_all_hiddens=return_all_hiddens, )
 
         with torch.no_grad():
-            if self.training and self.use_word_oracle:
-                if self.epoch > 5:
+            if self.training and self.use_word_oracle and self.epoch > 5:
                     decoder_out = self.decoder(prev_output_tokens, encoder_out=encoder_out, features_only=features_only,
                                                src_lengths=src_lengths, return_all_hiddens=return_all_hiddens, )
                     prev_output_tokens = self.get_word_orcale_tokens(decoder_out[0].detach(), prev_output_tokens)
-                
-            
-            elif self.training and self.use_sentence_oracle:
-                prob = self.probs if self.epoch_decay else self.decay_prob(self.updates, or_type=4, k=self.decay_update)
-                p = random.random()
-                if p > prob:
-                    prev_output_tokens = self.get_sentence_oracle_tokens(
-                            prev_output_tokens, src_tokens, src_lengths, target)
-                            
-            elif self.training and self.use_sentence_oracle_mask:
-                prev_output_tokens = self.get_sentence_oracle_tokens_mask(
-                            prev_output_tokens, src_tokens, src_lengths, target)            
-            
-
-
-            elif self.training and self.topk_sampling:
-                if self.epoch > 5:
-                    decoder_out = self.decoder(prev_output_tokens, encoder_out=encoder_out, features_only=features_only,
-                                               src_lengths=src_lengths, return_all_hiddens=return_all_hiddens, )
-                    prev_output_tokens = self.get_topk_tokens(decoder_out[0].detach(), prev_output_tokens, self.topk_k)
-
-            elif self.training and self.random_or_greedy_sampling:
-                if self.epoch > 5:
-                    decoder_out = self.decoder(prev_output_tokens, encoder_out=encoder_out, features_only=features_only,
-                                               src_lengths=src_lengths, return_all_hiddens=return_all_hiddens, )
-                    prev_output_tokens = self.get_random_or_greedy_tokens(decoder_out[0].detach(), prev_output_tokens)
-
-
-
-            elif self.training and self.random_sampling_random_output and self.epoch > 5:
-                decoder_out = self.decoder(prev_output_tokens, encoder_out=encoder_out, features_only=features_only,
-                                           src_lengths=src_lengths, return_all_hiddens=return_all_hiddens, )
-                prev_output_tokens, greedy_output = self.get_random_input_random_output_replace_nongold(decoder_out[0].detach(), prev_output_tokens)
 
             elif self.training and self.word_oracle_noise_greedy_output and self.epoch > 5:
                 decoder_out = self.decoder(prev_output_tokens, encoder_out=encoder_out, features_only=features_only,
                                            src_lengths=src_lengths, return_all_hiddens=return_all_hiddens, )
                 prev_output_tokens, greedy_output = self.get_greedy_noise_input_greedy_output(decoder_out[0].detach(), prev_output_tokens)
-                
-
-            elif self.training and self.topk_greedy_output and self.epoch > 5:
-                decoder_out = self.decoder(prev_output_tokens, encoder_out=encoder_out, features_only=features_only,
-                                           src_lengths=src_lengths, return_all_hiddens=return_all_hiddens, )
-                prev_output_tokens, greedy_output = self.get_topk_input_greedy_output(decoder_out[0].detach(), prev_output_tokens, self.topk_k)
-
-            elif self.training and self.word_oracle_no_noise_greedy_mix_random_output and self.epoch > 5:
-                decoder_out = self.decoder(prev_output_tokens, encoder_out=encoder_out, features_only=features_only,
-                                           src_lengths=src_lengths, return_all_hiddens=return_all_hiddens, )
-                prev_output_tokens, greedy_mix_random_output = self.get_greedy_mix_gold_input_greedy_mix_random_output(decoder_out[0].detach(), prev_output_tokens)
-
-            elif self.training and self.word_oracle_replace_non_gold_greedy_with_topk and self.epoch > 5:
-                decoder_out = self.decoder(prev_output_tokens, encoder_out=encoder_out, features_only=features_only,
-                                           src_lengths=src_lengths, return_all_hiddens=return_all_hiddens, )
-                prev_output_tokens, gold_mix_topk_output = self.get_gold_mix_greedy_input_gold_mix_topk_output(decoder_out[0].detach(), prev_output_tokens)
-                
 
         decoder_out = self.decoder(prev_output_tokens, encoder_out=encoder_out, features_only=features_only,
                                        src_lengths=src_lengths, return_all_hiddens=return_all_hiddens)
 
+                
+        if self.training and self.epoch > 5 and self.greedy_mix_CE:
+            prev_output_tokens = self.get_greedy_output(decoder_out[0].detach(), prev_output_tokens)
 
-
-        if self.training and self.epoch > 5 and self.random_mix_mle_test:
-            if self.replace_non_gold_greedy:
-                prev_output_tokens = self.replace_non_gold_greedy_with_random_tokens(decoder_out[0].detach(), prev_output_tokens)
-            else:
-                prev_output_tokens = self.get_random_tokens(prev_output_tokens)
-        if self.training and self.epoch > 5 and self.greedy_mix_mle_test:
-            if self.no_mix_gold:
-                #if not self.soft_training:
-                prev_output_tokens = self.get_greedy_output(decoder_out[0].detach(), prev_output_tokens)
-                #else:
-                #prev_output_tokens = self.get_soft_greedy_output(decoder_out[0].detach())
-            else:
-                prev_output_tokens = self.get_word_orcale_tokens(decoder_out[0].detach(), prev_output_tokens)
-
-
-
-        if self.training and self.random_sampling_greedy_output and self.epoch > 5:
+        if self.training and self.word_oracle_noise_greedy_output and self.epoch > 5:
             prev_output_tokens = greedy_output
-        elif self.training and self.random_sampling_random_output and self.epoch > 5:
-            prev_output_tokens = greedy_output
-        elif self.training and self.word_oracle_noise_greedy_output and self.epoch > 5:
-            prev_output_tokens = greedy_output
-        elif self.training and self.use_sentence_oracle:
-            prev_output_tokens = prev_output_tokens
-        elif self.training and self.use_sentence_oracle_mask:
-            prev_output_tokens = prev_output_tokens
-        elif self.training and self.topk_greedy_output and self.epoch > 5:
-            prev_output_tokens = greedy_output
-        elif self.training and self.word_oracle_no_noise_greedy_mix_random_output and self.epoch > 5:
-            prev_output_tokens = greedy_mix_random_output
-        elif self.training and self.word_oracle_replace_non_gold_greedy_with_topk and self.epoch > 5:
-            prev_output_tokens = gold_mix_topk_output
 
 
-        if self.use_neighbor_MLE:
+        if self.use_mix_CE:
             out = [decoder_out, prev_output_tokens, self.updates, self.decay_k]
         else:
             out = decoder_out

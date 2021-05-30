@@ -12,15 +12,11 @@ from fairseq.criterions import FairseqCriterion, register_criterion
 
 
 def label_smoothed_nll_loss(lprobs, target, epsilon, ignore_index=None, reduce=True, **kwargs):
-    use_neighbor_MLE = kwargs.get('use_neighbor_MLE', False)
-
-    B = kwargs.get('batch_size', -1)
-    L = kwargs.get('max_len', 0)
-    target_embed = kwargs.get('target_embeddings',None)
+    use_mix_CE = kwargs.get('use_mix_CE', False)
 
     neighbors = kwargs.get('neighbors', None)
-    cur_num_updates = kwargs.get('cur_num_updates', -1)
-    total_num_updates = kwargs.get('total_num_updates', 0)
+    cur_num_updates = kwargs.get('cur_num_updates', None)
+    total_num_updates = kwargs.get('total_num_updates', None)
 
     if target.dim() == lprobs.dim() - 1:
         target = target.unsqueeze(-1)
@@ -29,31 +25,10 @@ def label_smoothed_nll_loss(lprobs, target, epsilon, ignore_index=None, reduce=T
 
     nll_loss = -lprobs.gather(dim=-1, index=target)
     
-    #if cur_num_updates > 40000:
-    #    probs = torch.nn.functional.softmax(lprobs, dim=-1)
-    #    weighted_target = 0.99*target.float()
-    #    p1 = -probs.gather(dim=-1,index=target) * lprobs.gather(dim=-1, index=target)
-    #    p2 = probs.gather(dim=-1,index=target) * torch.log(0.99+0.01*probs.gather(dim=-1, index=target))
-    #    nll_loss = -(p1+p2)
-    
-    if use_neighbor_MLE:
-       # ours
-       # p = (cur_num_updates) / (total_num_updates * 2)
-       # mix_input_neighbor_loss = -lprobs.gather(dim=-1, index=neighbors)
-       # nll_loss = (1 - p) * nll_loss + p * mix_input_neighbor_loss
-
-       # self-knowledge distill
-        gold_embed = target_embed(target)
-        neighbors_embed = target_embed(neighbors)
-        if cur_num_updates > 1800:
-            #print('max,min:',torch.max(torch.norm(neighbors_embed - gold_embed, p=2, dim=1)),torch.min(torch.norm(neighbors_embed - gold_embed, p=2, dim=1)))
-            distance = torch.exp(-3*torch.norm(neighbors_embed - gold_embed, p=2, dim=1).to(lprobs)).detach().clone()
-            #distance = torch.nn.functional.cosine_similarity(neighbors_embed, gold_embed, dim=1, eps=1e-3).to(lprobs).detach().clone()
-            #print('dist:', distance)
-            #print(torch.clamp(distance, min=0.0,max=0.5) )
-            p = torch.clamp(distance, min=0.0,max=0.5) * (cur_num_updates / total_num_updates)
-            mix_input_neighbor_loss = -lprobs.gather(dim=-1, index=neighbors)
-            nll_loss = (1 - p) * nll_loss + p * mix_input_neighbor_loss
+    if use_mix_CE:
+        p = (cur_num_updates) / (total_num_updates * 2)
+        mix_input_neighbor_loss = -lprobs.gather(dim=-1, index=neighbors)
+        nll_loss = (1 - p) * nll_loss + p * mix_input_neighbor_loss
 
     smooth_loss = -lprobs.sum(dim=-1, keepdim=True)
     if ignore_index is not None:
@@ -99,24 +74,26 @@ class OracleLabelSmoothedCrossEntropyCriterion(FairseqCriterion):
         3) logging outputs to display while training
         """
 
-        use_neighbor_MLE = False
+        use_mix_CE = False
+        neighbors = None
+        current_num_updates = None
+        total_num_updates = None
 
         net_output = model(**sample['net_input'], target=sample['target'])
 
 
         if isinstance(net_output, list) and len(net_output)==4:
-            use_neighbor_MLE = True
+            use_mix_CE = True
             total_num_updates = net_output[3]
             current_num_updates = net_output[2]
             neighbors = net_output[1]
             net_output = net_output[0]
 
-        if use_neighbor_MLE:
-            loss, nll_loss = self.compute_loss(model, net_output, sample, reduce=reduce,
+        loss, nll_loss = self.compute_loss(model, net_output, sample, reduce=reduce,
                                                    neighbors=neighbors,
                                                    total_num_updates=total_num_updates,
                                                    cur_num_updates=current_num_updates,
-                                                   use_neighbor_MLE=use_neighbor_MLE)
+                                                   use_mix_CE=use_mix_CE)
 
         else:
             loss, nll_loss = self.compute_loss(model, net_output, sample, reduce=reduce,
@@ -135,22 +112,19 @@ class OracleLabelSmoothedCrossEntropyCriterion(FairseqCriterion):
         }
         return loss, sample_size, logging_output
 
-    def compute_loss(self, model, net_output, sample, reduce=True, **kwargs):
-        use_neighbor_MLE = kwargs.get('use_neighbor_MLE',False)
-        total_num_updates = kwargs.get('total_num_updates', None)
-        cur_num_updates = kwargs.get('cur_num_updates', -1)
-        
-        neighbors = kwargs.get('neighbors', None)
+    def compute_loss(self, model, net_output, sample, reduce=True, 
+                                                      neighbors = None,
+                                                      total_num_updates = None,
+                                                      cur_num_updates = None,
+                                                      use_mix_CE = False,
+                                                      **kwargs):
+        use_mix_CE = kwargs.get('use_mix_CE', False)
 
         lprobs = model.get_normalized_probs(net_output, log_probs=True)
-        B,L,_ = lprobs.size()
         lprobs = lprobs.view(-1, lprobs.size(-1))
         target = model.get_targets(sample, net_output).view(-1, 1)
 
-        target_embeddings = model.decoder.embed_tokens #
-
         if neighbors is not None:
-            #print('size', neighbors.size())
             B, L = neighbors.size()
             bos = neighbors[:, 0]
             neighbors = torch.cat([neighbors, bos.unsqueeze(1)], dim=1)[:,1:]
@@ -159,12 +133,10 @@ class OracleLabelSmoothedCrossEntropyCriterion(FairseqCriterion):
 
         loss, nll_loss = label_smoothed_nll_loss(
             lprobs, target, self.eps, ignore_index=self.padding_idx, reduce=reduce,
-            neighbors=neighbors, cur_num_updates=cur_num_updates,
+            neighbors=neighbors, 
+            cur_num_updates=cur_num_updates,
             total_num_updates=total_num_updates,
-            use_neighbor_MLE=use_neighbor_MLE,
-            batch_size=B,
-            max_len=L,
-            target_embeddings=target_embeddings
+            use_mix_CE=use_mix_CE
         )
         return loss, nll_loss
 
