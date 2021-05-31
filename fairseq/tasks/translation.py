@@ -318,7 +318,7 @@ class TranslationTask(FairseqTask):
         if self.args.eval_bleu:
 
             def sum_logs(key):
-                return sum(log.get(key, 0) for log in logging_outputs)
+                return sum(int(log.get(key, 0)) for log in logging_outputs)
 
             counts, totals = [], []
             for i in range(EVAL_BLEU_ORDER):

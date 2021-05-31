@@ -95,10 +95,6 @@ class OracleLabelSmoothedCrossEntropyCriterion(FairseqCriterion):
                                                    cur_num_updates=current_num_updates,
                                                    use_mix_CE=use_mix_CE)
 
-        else:
-            loss, nll_loss = self.compute_loss(model, net_output, sample, reduce=reduce,
-                                                   use_neighbor_MLE=use_neighbor_MLE)
-
         prob = model.get_probs()
         sample_size = sample['target'].size(0) if self.sentence_avg else sample['ntokens']
         logging_output = {
@@ -118,8 +114,6 @@ class OracleLabelSmoothedCrossEntropyCriterion(FairseqCriterion):
                                                       cur_num_updates = None,
                                                       use_mix_CE = False,
                                                       **kwargs):
-        use_mix_CE = kwargs.get('use_mix_CE', False)
-
         lprobs = model.get_normalized_probs(net_output, log_probs=True)
         lprobs = lprobs.view(-1, lprobs.size(-1))
         target = model.get_targets(sample, net_output).view(-1, 1)
