@@ -99,7 +99,16 @@ python scripts/average_checkpoints.py --inputs $MODEL \
 python generate.py ./data-bin/wmt16_ro_en --path $MODEL/top_5.pt \
        --batch-size 512 --beam 5 --remove-bpe --quiet
 ```
+--------------------------------
+# Results
+Our complete results can be found in `resutls/`
 
+
+
+
+
+------------------------------
+# Citation
 
 
 
