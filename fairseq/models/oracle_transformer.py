@@ -77,32 +77,8 @@ class TransformerModel(FairseqEncoderDecoderModel):
         self.use_sentence_oracle_mask = args.use_sentence_oracle_mask
         self.use_mix_CE = args.use_mix_CE
         self.exponential = args.ss_exponential
-
-        #self.random_sampling = args.random_sampling_strategy
-
-        #self.topk_sampling = args.use_topk_sampling
-        #self.topk_k = args.topk_k
-
-        #self.random_or_greedy_sampling = args.random_or_greedy_sampling
-        #self.random_greedy_ratio = args.random_greedy_ratio
-
-
-        #self.random_mix_mle_test = args.random_mix_mle_test
-        #self.greedy_mix_mle_test = args.greedy_mix_mle_test
         self.greedy_mix_CE = args.greedy_mix_CE
-        #self.no_mix_gold = args.no_mix_gold
-        #self.replace_non_gold_greedy = args.replace_non_gold_greedy
-
-        #self.random_sampling_greedy_output = args.random_sampling_greedy_output
-        #self.random_sampling_random_output = args.random_sampling_random_output
         self.word_oracle_noise_greedy_output = args.word_oracle_noise_greedy_output
-        #self.topk_greedy_output = args.topk_greedy_output
-        #self.word_oracle_no_noise_greedy_mix_random_output = args.word_oracle_no_noise_greedy_mix_random_output
-        #self.word_oracle_replace_non_gold_greedy_with_topk = args.word_oracle_replace_non_gold_greedy_with_topk
-
-        #self.decay_update = args.decay_update
-        
-
 
     @staticmethod
     def add_args(parser):
@@ -184,9 +160,6 @@ class TransformerModel(FairseqEncoderDecoderModel):
                             help='use word level oracles')
         parser.add_argument('--decay-k', type=int, metavar='D', default=0,
                             help='decay k')
-
-        #parser.add_argument('--change-decay-prob-till', type=int, default=0)                       # !!
-
         parser.add_argument('--use-epoch-numbers-decay', action='store_true', default=False,
                             help='probability decay by epoch number')
         parser.add_argument('--use-greedy-gumbel-noise', action='store_true', default=False,
@@ -198,44 +171,10 @@ class TransformerModel(FairseqEncoderDecoderModel):
         parser.add_argument('--oracle-search-beam-size', type=int, metavar='N', default=4,
                             help='generate oracle sentence beam size')
         parser.add_argument('--use-sentence-oracle-mask', action='store_true', default=False)
-        
         parser.add_argument('--use-mix-CE', action='store_true', default=False)
-    
         parser.add_argument('--ss-exponential', type=float, default=0.5)
-
-        #parser.add_argument('--random_sampling_strategy', action='store_true', default=False)
-
-        #parser.add_argument('--use-topk-sampling', action='store_true', default=False)
-        #parser.add_argument('--topk-k', type=int, default=1)
-
-        #parser.add_argument('--random_or_greedy_sampling', action='store_true',default=False)
-        #parser.add_argument('--random_greedy_ratio', type=float, default=0.5)
-
-        #parser.add_argument('--random-mix-mle-test', action='store_true', default=False)
         parser.add_argument('--greedy-mix-CE', action='store_true', default=False)
-        #parser.add_argument('--no-mix-gold', action='store_true', default=False)
-        #parser.add_argument('--replace-non-gold-greedy', action='store_true', default=False)
-
-        #parser.add_argument('--random-sampling-greedy-output', action='store_true', default=False)
-        #parser.add_argument('--random-sampling-random-output', action='store_true', default=False)
         parser.add_argument('--word-oracle-noise-greedy-output', action='store_true', default=False)
-        #parser.add_argument('--topk-greedy-output', action='store_true', default=False)
-        #parser.add_argument('--word-oracle-no-noise-greedy-mix-random-output', action='store_true', default=False)
-        #parser.add_argument('--word-oracle-replace-non-gold-greedy-with-topk', action='store_true', default=False)
-
-        #parser.add_argument('--source-random-sampling', action='store_true', default=False)
-        #parser.add_argument('--source-ss-exponential', type=float, default=0.8)
-
-        #parser.add_argument('--iterative-training', action='store_true', default=False)
-
-        #parser.add_argument('--soft-training', action='store_true', default=False)
-        #parser.add_argument('--topk-hard-training', action='store_true', default=False)
-        #parser.add_argument('--topk-hard', type=int, default=-1)
-        
-        #parser.add_argument('--minimum-risk-training', action='store_true', default=False)
-        #parser.add_argument('--minimum-risk-training-beam-size', type=int, default=100)
-        
-        #parser.add_argument('--decay-update', type=int, default=0)
 
     @classmethod
     def build_model(cls, args, task):
