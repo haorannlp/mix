@@ -74,7 +74,6 @@ class TransformerModel(FairseqEncoderDecoderModel):
         self.use_bleu_gumbel_noise = args.use_bleu_gumbel_noise
         self.probs = 0
         
-        self.use_sentence_oracle_mask = args.use_sentence_oracle_mask
         self.use_mix_CE = args.use_mix_CE
         self.exponential = args.ss_exponential
         self.greedy_mix_CE = args.greedy_mix_CE
@@ -170,7 +169,6 @@ class TransformerModel(FairseqEncoderDecoderModel):
                             help='generate sentence with gumbel noise')
         parser.add_argument('--oracle-search-beam-size', type=int, metavar='N', default=4,
                             help='generate oracle sentence beam size')
-        parser.add_argument('--use-sentence-oracle-mask', action='store_true', default=False)
         parser.add_argument('--use-mix-CE', action='store_true', default=False)
         parser.add_argument('--ss-exponential', type=float, default=0.5)
         parser.add_argument('--greedy-mix-CE', action='store_true', default=False)
