@@ -100,6 +100,8 @@ python generate.py ./data-bin/wmt16_ro_en --path $MODEL/top_5.pt \
        --batch-size 512 --beam 5 --remove-bpe --quiet
 ```
 
+------------------------------
+# Citation
 
 
 
