@@ -37,9 +37,6 @@ locket==0.2.0
 Markdown==3.2.2
 MarkupSafe==1.1.1
 mecab-python3==0.996.5
-#mkl-fft==1.2.0
-#mkl-random==1.2.0
-#mkl-service==2.3.0
 msgpack==1.0.0
 multipledispatch==0.6.0
 numba==0.51.2
