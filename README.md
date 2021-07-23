@@ -104,7 +104,19 @@ python generate.py ./data-bin/wmt16_ro_en --path $MODEL/top_5.pt \
 ------------------------------
 # Citation
 
-
+```
+@InProceedings{pmlr-v139-li21n,
+  title = 	 {Mixed Cross Entropy Loss for Neural Machine Translation},
+  author =       {Li, Haoran and Lu, Wei},
+  booktitle = 	 {Proceedings of the 38th International Conference on Machine Learning},
+  pages = 	 {6425--6436},
+  year = 	 {2021},
+  volume = 	 {139},
+  series = 	 {Proceedings of Machine Learning Research},
+  month = 	 {18--24 Jul},
+  publisher = {PMLR},
+}
+```
 
 
 
